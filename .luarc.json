@@ -1,0 +1,17 @@
+{
+	"runtime.version": "LuaJIT",
+	"diagnostics.globals": [
+		"love",
+	],
+	"workspace.library": [
+		"${3rd}/love2d/library"
+	],
+	"workspace.checkThirdParty": false,
+	"format.defaultConfig": {
+		"indent_style": "space",
+		"indent_size": 4,
+	},
+	"diagnostics.disable": [
+		"duplicate-set-field"
+	],
+}
