@@ -46,17 +46,23 @@ function m.reload_source()
         if err ~= m.last_error then
             print(("error while loading: %s"):format(err))
             m.last_error = err
+            m.last_trace = nil
             m.error_since_reload = true
         end
-        return
     end
 
-    m.modtime = love.filesystem.getInfo(m.source_path).modtime
+    local info = love.filesystem.getInfo(m.source_path)
+    if info then
+        m.modtime = info.modtime
+    end
 end
 
 local function error_screen()
-    love.graphics.print(m.last_trace)
-    love.graphics.print(m.last_error)
+    if m.last_trace then
+        love.graphics.print(m.last_trace)
+    else
+        love.graphics.print(m.last_error)
+    end
 end
 
 function m.setup(source_path, callbacks)
