@@ -32,11 +32,16 @@ local function reload_source()
             if result ~= live.last_error then
                 print(("could not load module: %s"):format(result))
                 live.last_error = result
+                live.error_since_reload = true
             end
             return
         end
     else
-        print(err)
+        if err ~= live.last_error then
+            print(("error while loading: %s"):format(err))
+            live.last_error = err
+            live.error_since_reload = true
+        end
         return
     end
 
