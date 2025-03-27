@@ -78,9 +78,7 @@ function m.setup(source_path, callbacks)
         local info = love.filesystem.getInfo(m.source_path)
         if info and info.modtime > m.modtime then
             -- clear all stale callbacks, because the module might have removed them
-            for k,v in pairs(m.cb) do
-                m.cb[k] = nil
-            end
+            m.cb = {}
             m.reload_source()
             m.call_protected(m.cb.load)
         end
