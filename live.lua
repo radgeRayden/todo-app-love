@@ -7,6 +7,8 @@ local m = {
     error_since_reload = false,
     cb = {},
     persist = {},
+
+    require_cache = {},
 }
 
 local function error_handler(err)
@@ -37,9 +39,23 @@ function m.call_protected(f, ...)
     return true
 end
 
+local _require = require
+---@param mod string
+local function hot_require(mod)
+    local path = mod:gsub("%.", "/")
+    local info = love.filesystem.getInfo(("%s.lua"):format(path))
+    if info then
+        if m.require_cache[mod] and info.modtime > m.require_cache[mod] then
+            package.loaded[mod] = nil
+        end
+        m.require_cache[mod] = info.modtime
+    end
+    return _require(mod)
+end
+
 function m.reload_source()
     m.error_since_reload = false
-    local f, err = loadfile(m.source_path)
+    local f, err = loadfile(m.source_path, nil, setmetatable({ require = hot_require }, { __index = _G }))
     if f then
         m.call_protected(f)
     else
@@ -68,6 +84,7 @@ end
 function m.setup(source_path, callbacks)
     assert(source_path)
     m.source_path = source_path
+
     function love.draw()
         if m.cb.draw then
             love.graphics.push "all"
@@ -92,8 +109,8 @@ function m.setup(source_path, callbacks)
         m.call_protected(m.cb.update, dt)
     end
 
-    for _,v in ipairs(callbacks) do
-        love[v] = function (...)
+    for _, v in ipairs(callbacks) do
+        love[v] = function(...)
             m.call_protected(m.cb[v], ...)
         end
     end
