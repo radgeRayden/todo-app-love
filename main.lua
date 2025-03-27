@@ -72,6 +72,7 @@ function love.update(dt)
             reload_source()
         end
     end
+    live_callback("update", dt)
 end
 
 function love.draw()
