@@ -92,6 +92,7 @@ function m.setup(source_path, callbacks)
             while pcall(love.graphics.pop) do
             end
         end
+        love.graphics.reset()
         if m.error_since_reload then
             error_screen()
         end
