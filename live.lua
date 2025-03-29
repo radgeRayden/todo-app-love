@@ -43,12 +43,15 @@ local _require = require
 ---@param mod string
 local function hot_require(mod)
     local path = mod:gsub("%.", "/")
-    local info = love.filesystem.getInfo(("%s.lua"):format(path))
-    if info then
-        if m.require_cache[mod] and info.modtime > m.require_cache[mod] then
-            package.loaded[mod] = nil
+    for _,pattern in ipairs(m.require_patterns) do
+        local info = love.filesystem.getInfo(pattern:format(path))
+        if info then
+            if m.require_cache[mod] and info.modtime > m.require_cache[mod] then
+                package.loaded[mod] = nil
+            end
+            m.require_cache[mod] = info.modtime
+            break
         end
-        m.require_cache[mod] = info.modtime
     end
     return _require(mod)
 end
@@ -86,9 +89,11 @@ function m.setup(source_path, settings)
     settings = settings or {}
     settings.callbacks = settings.callbacks or {}
     settings.loadfile = settings.loadfile or loadfile
+    settings.require_patterns = settings.require_patterns or { "%s.lua" }
 
     m.source_path = source_path
     m.loadfile = settings.loadfile
+    m.require_patterns = settings.require_patterns
 
     function love.draw()
         if m.cb.draw then
