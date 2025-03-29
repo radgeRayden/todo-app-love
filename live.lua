@@ -100,6 +100,10 @@ function m.setup(source_path, callbacks)
 
     function love.update(dt)
         local info = love.filesystem.getInfo(m.source_path)
+        if not info and not m.error_since_reload then
+            print(("file not found: %s"):format(m.source_path))
+            m.error_since_reload = true
+        end
         if info and info.modtime > m.modtime then
             -- clear all stale callbacks, because the module might have removed them
             m.cb = {}
