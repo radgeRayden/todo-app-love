@@ -11,11 +11,13 @@ function love.load(args)
         local match = string.match(v, ("^%s(.+)$"):format(pattern_escape "--live-reload-source="))
         if match then
             live.setup(match, {
-                "keypressed",
-                "keyreleased",
-                "resize",
-                "mousepressed" ,
-                "mousereleased",
+                callbacks = {
+                    "keypressed",
+                    "keyreleased",
+                    "resize",
+                    "mousepressed",
+                    "mousereleased",
+                },
             })
         end
     end

@@ -55,7 +55,7 @@ end
 
 function m.reload_source()
     m.error_since_reload = false
-    local f, err = loadfile(m.source_path, nil, setmetatable({ require = hot_require }, { __index = _G }))
+    local f, err = m.loadfile(m.source_path, nil, setmetatable({ require = hot_require }, { __index = _G }))
     if f then
         m.call_protected(f)
     else
@@ -81,9 +81,14 @@ local function error_screen()
     end
 end
 
-function m.setup(source_path, callbacks)
+function m.setup(source_path, settings)
     assert(source_path)
+    settings = settings or {}
+    settings.callbacks = settings.callbacks or {}
+    settings.loadfile = settings.loadfile or loadfile
+
     m.source_path = source_path
+    m.loadfile = settings.loadfile
 
     function love.draw()
         if m.cb.draw then
@@ -114,7 +119,7 @@ function m.setup(source_path, callbacks)
         m.call_protected(m.cb.update, dt)
     end
 
-    for _, v in ipairs(callbacks) do
+    for _, v in ipairs(settings.callbacks) do
         love[v] = function(...)
             m.call_protected(m.cb[v], ...)
         end
