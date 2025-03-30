@@ -12,7 +12,7 @@
 (λ set-option! [key value]
    (if (. app-options key)
        (set (. app-options key) value)
-       (print "unrecognized option:" key)))
+       (print (string.format "unrecognized option: %s" key))))
 
 (λ parse-arg [arg]
    (case (string.match arg "^%-%-(.+)%=(.+)$")
