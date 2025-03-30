@@ -1,6 +1,6 @@
 (local live (require :live))
 (local fennel (require :lib.fennel))
-(local app (require :src.app))
+(local app (rrequire :app))
 
 (local app-options {
         :live-reload-source ""

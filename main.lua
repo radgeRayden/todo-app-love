@@ -14,6 +14,11 @@ local make_love_searcher = function(env)
     end
 end
 
+local utils = require "utils"
+for k,v in pairs(utils) do
+    _G[k] = v
+end
+
 table.insert(package.loaders, make_love_searcher(_G))
 table.insert(fennel["macro-searchers"], make_love_searcher "_COMPILER")
 debug.traceback = fennel.traceback
