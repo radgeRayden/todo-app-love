@@ -1,5 +1,6 @@
 (local live (require :live))
 (local fennel (require :lib.fennel))
+(local app (require :src.app))
 
 (local app-options {
         :live-reload-source ""
@@ -48,7 +49,7 @@
 (fn love.load [args]
   (parse-options! args)
   (case app-options.live-reload-source
-    "" (do)
+    "" (app.init!)
     path (setup-live-coding-env! path)))
 
 (fn love.update [dt])
