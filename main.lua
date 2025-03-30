@@ -1,5 +1,4 @@
 local fennel = require("lib.fennel").install { correlate = true, moduleName = "lib.fennel" }
-local live = require "live"
 
 local make_love_searcher = function(env)
     return function(module_name)
