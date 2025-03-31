@@ -7,8 +7,7 @@ local make_love_searcher = function(env)
             return function(...)
                 local code = love.filesystem.read(path)
                 return fennel.eval(code, { env = env }, ...)
-            end,
-                path
+            end, path
         end
     end
 end

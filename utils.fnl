@@ -5,8 +5,8 @@
 
 (λ rrequire [name]
    (let [dir (string.match 
-              (. (debug.getinfo 2 :S) :short_src)
-              "^%.?%/?(.+)/.+$")
+              (. (debug.getinfo 2 :S) :source)
+              "^@%.?%/?(.+)/.+$")
          prefix (dir:gsub "%/" "%.")]
      (require (.. prefix :. name))))
 
