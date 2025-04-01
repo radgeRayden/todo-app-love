@@ -1,7 +1,7 @@
 (local fennel (require :lib.fennel))
 
-(λ pprint [value]
-   (print (fennel.view value)))
+(λ pprint [?value]
+   (print (fennel.view ?value)))
 
 (λ rrequire [name]
    (let [dir (string.match 
