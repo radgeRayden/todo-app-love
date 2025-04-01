@@ -1,14 +1,17 @@
+local error_since_reload = false
+---@type string?
+local last_error = ""
+---@type string?
+local last_trace = ""
+local modtime = 0
+local require_cache = {}
+---@type string
+local source_path = nil
+
 local m = {
-    ---@type string
-    source_path = nil,
-    modtime = 0,
-    last_error = "",
-    last_trace = "",
-    error_since_reload = false,
+    ---@type function[]
     cb = {},
     persist = {},
-
-    require_cache = {},
 }
 
 local function error_handler(err)
@@ -18,22 +21,23 @@ local function error_handler(err)
     }
 end
 
+---@param f function?
 function m.call_protected(f, ...)
     if not f then
         return
     end
-    if m.error_since_reload then
+    if error_since_reload then
         return false
     end
     local success, result = xpcall(f, error_handler, ...)
     if not success then
-        m.error_since_reload = true
-        if result.err ~= m.last_error then
+        error_since_reload = true
+        if result.err ~= last_error then
             print(result.trace)
             print(result.err)
         end
-        m.last_error = result.err
-        m.last_trace = result.trace
+        last_error = result.err
+        last_trace = result.trace
         return false
     end
     return true
@@ -46,10 +50,10 @@ local function hot_require(mod)
     for _,pattern in ipairs(m.require_patterns) do
         local info = love.filesystem.getInfo(pattern:format(path))
         if info then
-            if m.require_cache[mod] and info.modtime > m.require_cache[mod] then
+            if require_cache[mod] and info.modtime > require_cache[mod] then
                 package.loaded[mod] = nil
             end
-            m.require_cache[mod] = info.modtime
+            require_cache[mod] = info.modtime
             break
         end
     end
@@ -57,41 +61,41 @@ local function hot_require(mod)
 end
 
 function m.reload_source()
-    m.error_since_reload = false
-    local f, err = m.loadfile(m.source_path, nil, setmetatable({ require = hot_require }, { __index = _G }))
+    error_since_reload = false
+    local f, err = m.loadfile(source_path, nil, setmetatable({ require = hot_require }, { __index = _G }))
     if f then
         m.call_protected(f)
     else
-        if err ~= m.last_error then
+        if err ~= last_error then
             print(("error while loading: %s"):format(err))
-            m.last_error = err
-            m.last_trace = nil
-            m.error_since_reload = true
+            last_error = err
+            last_trace = nil
+            error_since_reload = true
         end
     end
 
-    local info = love.filesystem.getInfo(m.source_path)
+    local info = love.filesystem.getInfo(source_path)
     if info then
-        m.modtime = info.modtime
+        modtime = info.modtime
     end
 end
 
 local function error_screen()
-    if m.last_trace then
-        love.graphics.print(m.last_trace)
+    if last_trace then
+        love.graphics.print(last_trace or "")
     else
-        love.graphics.print(m.last_error)
+        love.graphics.print(last_error or "")
     end
 end
 
-function m.setup(source_path, settings)
-    assert(source_path)
+function m.setup(path, settings)
+    assert(path)
     settings = settings or {}
     settings.callbacks = settings.callbacks or {}
     settings.loadfile = settings.loadfile or loadfile
     settings.require_patterns = settings.require_patterns or { "%s.lua" }
 
-    m.source_path = source_path
+    source_path = path
     m.loadfile = settings.loadfile
     m.require_patterns = settings.require_patterns
 
@@ -103,18 +107,21 @@ function m.setup(source_path, settings)
             end
         end
         love.graphics.reset()
-        if m.error_since_reload then
+        if error_since_reload then
             error_screen()
         end
     end
 
+    local pre_update = settings.pre_update
     function love.update(dt)
-        local info = love.filesystem.getInfo(m.source_path)
-        if not info and not m.error_since_reload then
-            print(("file not found: %s"):format(m.source_path))
-            m.error_since_reload = true
+        if pre_update then pre_update(dt) end
+
+        local info = love.filesystem.getInfo(source_path)
+        if not info and not error_since_reload then
+            print(("file not found: %s"):format(source_path))
+            error_since_reload = true
         end
-        if info and info.modtime > m.modtime then
+        if info and info.modtime > modtime then
             -- clear all stale callbacks, because the module might have removed them
             m.cb = {}
             m.reload_source()
