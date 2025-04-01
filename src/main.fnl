@@ -4,7 +4,7 @@
 
 (local app-options {
         :live-reload-source ""
-        :repl-enabled? false
+        :enable-repl false
        })
 
 (λ rslice [t n]
@@ -33,7 +33,7 @@
              (set args (rslice args 2))
              (set positional-arg-index (+ positional-arg-index 1)))))))
 
-(if app-options.repl-enabled?
+(if app-options.enable-repl
  (: (love.thread.newThread 
    "local repl_to_main, main_to_repl =
       love.thread.getChannel('repl-to-main'),
@@ -70,7 +70,7 @@
     path (setup-live-coding-env! path)))
 
 (fn love.update [dt]
-  (if app-options.repl-enabled? (process-repl-input)))
+  (if app-options.enable-repl (process-repl-input)))
 
 (fn love.quit []
   (let [channel (love.thread.getChannel :main-to-repl)]
