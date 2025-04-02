@@ -8,6 +8,10 @@ local require_cache = {}
 ---@type string
 local source_path = nil
 
+---@type string[]
+local require_patterns = {}
+local loadfile_f
+
 local m = {
     ---@type function[]
     cb = {},
@@ -47,7 +51,7 @@ local _require = require
 ---@param mod string
 local function hot_require(mod)
     local path = mod:gsub("%.", "/")
-    for _,pattern in ipairs(m.require_patterns) do
+    for _,pattern in ipairs(require_patterns) do
         local info = love.filesystem.getInfo(pattern:format(path))
         if info then
             if require_cache[mod] and info.modtime > require_cache[mod] then
@@ -62,7 +66,7 @@ end
 
 function m.reload_source()
     error_since_reload = false
-    local f, err = m.loadfile(source_path, nil, setmetatable({ require = hot_require }, { __index = _G }))
+    local f, err = loadfile_f(source_path, nil, setmetatable({ require = hot_require }, { __index = _G }))
     if f then
         m.call_protected(f)
     else
@@ -96,8 +100,8 @@ function m.setup(path, settings)
     settings.require_patterns = settings.require_patterns or { "%s.lua" }
 
     source_path = path
-    m.loadfile = settings.loadfile
-    m.require_patterns = settings.require_patterns
+    loadfile_f = settings.loadfile
+    require_patterns = settings.require_patterns
 
     function love.draw()
         if m.cb.draw then
