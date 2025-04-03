@@ -50,14 +50,15 @@ end
 local _require = require
 ---@param mod string
 local function hot_require(mod)
-    local path = mod:gsub("%.", "/")
+    local proto_path = mod:gsub("%.", "/")
     for _,pattern in ipairs(require_patterns) do
-        local info = love.filesystem.getInfo(pattern:format(path))
+        local path = pattern:format(proto_path)
+        local info = love.filesystem.getInfo(path)
         if info then
-            if require_cache[mod] and info.modtime > require_cache[mod] then
+            if require_cache[path] and info.modtime > require_cache[path] then
                 package.loaded[mod] = nil
             end
-            require_cache[mod] = info.modtime
+            require_cache[path] = info.modtime
             break
         end
     end
@@ -92,6 +93,14 @@ local function error_screen()
     end
 end
 
+local function check_updated(path, modtime)
+    local info = love.filesystem.getInfo(path)
+    if not info then
+        return false
+    end
+    return info.modtime > modtime
+end
+
 function m.setup(path, settings)
     assert(path)
     settings = settings or {}
@@ -120,16 +129,38 @@ function m.setup(path, settings)
     function love.update(dt)
         if pre_update then pre_update(dt) end
 
-        local info = love.filesystem.getInfo(source_path)
-        if not info and not error_since_reload then
-            print(("file not found: %s"):format(source_path))
-            error_since_reload = true
-        end
-        if info and info.modtime > modtime then
-            -- clear all stale callbacks, because the module might have removed them
-            m.cb = {}
-            m.reload_source()
-            m.call_protected(m.cb.load)
+        do
+            local err
+            local are_files_stale = false
+            for k,v in pairs(require_cache) do
+                local is_stale = check_updated(k, v)
+                if is_stale == nil then
+                    err = true
+                    break
+                end
+                are_files_stale = are_files_stale or is_stale
+            end
+            local is_main_file_stale = check_updated(source_path, modtime)
+            if is_main_file_stale == nil then
+                err = true
+            end
+            are_files_stale = are_files_stale or is_main_file_stale
+
+            if err then
+                local msg = ("file not found: %s"):format(path)
+                print(msg)
+                error_since_reload = true
+                last_error = msg
+                last_trace = nil
+                return
+            end
+
+            if are_files_stale then
+                -- clear all stale callbacks, because the module might have removed them
+                m.cb = {}
+                m.reload_source()
+                m.call_protected(m.cb.load)
+            end
         end
 
         m.call_protected(m.cb.update, dt)
@@ -140,6 +171,9 @@ function m.setup(path, settings)
             m.call_protected(m.cb[v], ...)
         end
     end
+
+    m.reload_source()
+    m.call_protected(m.cb.load)
 end
 
 return m
