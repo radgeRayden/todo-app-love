@@ -1,7 +1,7 @@
 (local fennel (require "lib.fennel"))
-(local class (require "lib.batteries.class"))
+(import-macros { : class } :src.class)
 
-(local task (class {:name :task}))
+(class task)
 
 (λ task.new [self description]
    (set self.description description))
