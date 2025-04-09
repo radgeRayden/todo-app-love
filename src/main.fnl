@@ -11,7 +11,7 @@
    (icollect [i v (ipairs t)] (if (>= i n) v)))
 
 (λ set-option! [key value]
-   (if (. app-options key)
+   (if (~= (. app-options key) nil)
        (set (. app-options key) value)
        (print (string.format "unrecognized option: %s" key))))
 
