@@ -71,13 +71,13 @@
         end")
        :start)
       (do 
-        (fennel.repl)
+        (fennel.repl { :env (rrequire :repl-env) })
         (love.event.quit)))))
 
 (fn process-repl-input []
   (let [channel (love.thread.getChannel :repl-to-main)
         input (channel:pop)]
-    (if input (pprint (fennel.eval input {:env _G})))))
+    (if input (pprint (fennel.eval input { :env (rrequire :repl-env) })))))
 
 (fn love.update [dt]
   (if app-options.enable-repl (process-repl-input)))
