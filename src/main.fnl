@@ -5,6 +5,8 @@
 (local app-options {
         :live-reload-source ""
         :enable-repl false
+        :blocking-repl false
+        :no-window false
        })
 
 (λ rslice [t n]
@@ -33,22 +35,6 @@
              (set args (rslice args 2))
              (set positional-arg-index (+ positional-arg-index 1)))))))
 
-(if app-options.enable-repl
- (: (love.thread.newThread 
-   "local repl_to_main, main_to_repl =
-      love.thread.getChannel('repl-to-main'),
-      love.thread.getChannel('main-to-repl')
-    while not (main_to_repl:pop() == 'exit') do
-      local input = io.read()
-      love.thread.getChannel('repl-to-main'):push(input)
-    end")
-   :start))
-
-(fn process-repl-input []
-  (let [channel (love.thread.getChannel :repl-to-main)
-        input (channel:pop)]
-    (if input (pprint (fennel.eval input {:env _G})))))
-
 (fn fennel-loadfile [path _ env]
   (fn [] (fennel.dofile path {:filename path : env})))
 
@@ -66,8 +52,32 @@
 (fn love.load [args]
   (parse-options! args)
   (case app-options.live-reload-source
-    "" (app.init!)
-    path (setup-live-coding-env! path)))
+    "" (do (app.init!) (app.save!))
+    path (setup-live-coding-env! path))
+  (if app-options.no-window
+      (do
+        (set app-options.enable-repl true)
+        (set app-options.blocking-repl true))
+      (love.window.setMode 800 600 { :resizable true }))
+  (when app-options.enable-repl
+    (if (not app-options.blocking-repl)
+     (: (love.thread.newThread 
+       "local repl_to_main, main_to_repl =
+          love.thread.getChannel('repl-to-main'),
+          love.thread.getChannel('main-to-repl')
+        while not (main_to_repl:pop() == 'exit') do
+          local input = io.read()
+          love.thread.getChannel('repl-to-main'):push(input)
+        end")
+       :start)
+      (do 
+        (fennel.repl)
+        (love.event.quit)))))
+
+(fn process-repl-input []
+  (let [channel (love.thread.getChannel :repl-to-main)
+        input (channel:pop)]
+    (if input (pprint (fennel.eval input {:env _G})))))
 
 (fn love.update [dt]
   (if app-options.enable-repl (process-repl-input)))
