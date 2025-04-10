@@ -3,6 +3,8 @@
 
 (local state 
   { :tasks {} 
+    :tasks-by-id {}
+    :tasks-by-parent {}
     :preferences {
       :language "en-US"
     }
@@ -11,28 +13,34 @@
 (λ handle-taskfile-error [err]
    (print err))
 
-(λ unserialize-tasks [data]
-   (icollect [_ v (ipairs data)]
-     (setmetatable v task)))
+(λ add-task [t]
+  (setmetatable t task)
+  (table.insert state.tasks t)
+  (set (. state.tasks-by-id t.id) t)
+  (let [ parents state.tasks-by-parent
+         p-id t.parent ]
+    (when p-id
+      (if (not (. parents p-id)) (set (. parents p-id) {}))
+      (table.insert (. parents p-id) t))))
 
 (λ init! []
   (case (love.filesystem.read "tasks.tsk")
     (content _) (case (pcall fennel.eval content {:env {}})
-                  (true data) (set state.tasks (unserialize-tasks data))
+                  (true data) (each [_ v (ipairs data)] (add-task v))
                   (false err) (handle-taskfile-error err))))
 
 (λ save! []
   (love.filesystem.write "tasks.tsk" (fennel.view state.tasks)))
 
 (λ get-tasks [] state.tasks)
-
-(λ add-task [task]
-   (table.insert state.tasks task))
+(λ get-children [parent-id]
+   (. state.tasks-by-parent parent-id))
 
 {
   : init!
   : save! 
   : get-tasks
   : add-task
+  : get-children
 }
 
