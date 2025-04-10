@@ -84,5 +84,6 @@
 
 (fn love.quit []
   (let [channel (love.thread.getChannel :main-to-repl)]
-    (channel:push "exit")
-    false))
+    (channel:push "exit"))
+  (app.save!)
+  false)
