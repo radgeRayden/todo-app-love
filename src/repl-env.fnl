@@ -1,9 +1,7 @@
+(local tablex (require :lib.batteries.tablex))
 (local app (rrequire :app))
 (local task (rrequire :task))
 
-{
-  : rrequire
-  : task
-  :add-task app.add-task
-  :get-tasks app.get-tasks
-}
+(tablex.overlay app 
+  { : rrequire
+    : task })
