@@ -14,7 +14,7 @@
    (print err))
 
 (λ add-task [t]
-  (setmetatable t task)
+  (assert (= t.__type "task"))
   (table.insert state.tasks t)
   (set (. state.tasks-by-id t.id) t)
   (let [ parents state.tasks-by-parent
@@ -26,7 +26,7 @@
 (λ init! []
   (case (love.filesystem.read "tasks.tsk")
     (content _) (case (pcall fennel.eval content {:env {}})
-                  (true data) (each [_ v (ipairs data)] (add-task v))
+                  (true data) (each [_ v (ipairs data)] (add-task (task.unserialize v)))
                   (false err) (handle-taskfile-error err))))
 
 (λ save! []
