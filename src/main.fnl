@@ -51,14 +51,14 @@
 
 (fn love.load [args]
   (parse-options! args)
-  (case app-options.live-reload-source
-    "" (do (app.init!) (app.save!))
-    path (setup-live-coding-env! path))
   (if app-options.no-window
       (do
         (set app-options.enable-repl true)
         (set app-options.blocking-repl true))
       (love.window.setMode 800 600 { :resizable true }))
+  (case app-options.live-reload-source
+    "" (do (app.init!) (app.save!))
+    path (setup-live-coding-env! path))
   (when app-options.enable-repl
     (if (not app-options.blocking-repl)
      (: (love.thread.newThread 
