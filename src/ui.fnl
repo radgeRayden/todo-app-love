@@ -71,6 +71,7 @@
   (let [btn (button ...)]
     (self:add-element btn)
     (self:add-button btn)))
+
 (λ view.image [self constraint ?id ])
 
 (λ view.panel [self constraint color ?id]
@@ -78,7 +79,9 @@
 
 (λ view.label [self constraint text ?id]
    (self:add-element (label constraint text)))
+
 (λ view.text-field [self constraint ?id ])
+
 (λ view.text-area [self constraint ?id ])
 
 {
