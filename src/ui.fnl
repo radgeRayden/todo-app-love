@@ -78,6 +78,8 @@
 
 (λ view.update [self dt]
   (self.root:update (self.parent-constraint:get))
+  (each [_ v (ipairs self.elements)]
+    (if v.update (v.update dt)))
   (let [(mx my) (love.mouse.getPosition)]
     (each [_ b (ipairs self.buttons)]
       (let [(x y w h) (b.constraint:get)]
