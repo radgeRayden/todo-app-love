@@ -1,4 +1,5 @@
 (local live (require :live))
+(local ffi (require :ffi))
 (local fennel (require :lib.fennel))
 (local app (rrequire :app))
 
@@ -51,6 +52,12 @@
 
 (fn love.load [args]
   (parse-options! args)
+
+  ;; options that are unconditionally relevant
+  (love.window.setDisplaySleepEnabled true)
+  (ffi.cdef "bool SDL_SetHint(const char *name, const char *value);")
+  (ffi.C.SDL_SetHint :SDL_MOUSE_FOCUS_CLICKTHROUGH :1)
+
   (if app-options.no-window
       (do
         (set app-options.enable-repl true)
@@ -83,7 +90,8 @@
   (if app-options.enable-repl (process-repl-input)))
 
 (fn love.quit []
-  (let [channel (love.thread.getChannel :main-to-repl)]
-    (channel:push "exit"))
+  (when app-options.enable-repl 
+    (let [channel (love.thread.getChannel :main-to-repl)]
+      (channel:push "exit")))
   (app.save!)
   false)
