@@ -44,6 +44,10 @@
 (class button)
 (λ button.new [self constraint text on-click]
    (set self.constraint constraint)
+   (set self.label-constraint 
+     (-> (into constraint)
+       (: :bias 0.5 0.5)
+       (: :size 0.9 0.5 :percent :percent)))
    (set self.text text)
    (set self.on-click on-click))
 
@@ -51,7 +55,7 @@
    (love.graphics.setColor 0.25 0.25 0.25 1)
    (love.graphics.rectangle :fill (self.constraint:get))
    (love.graphics.setColor 1 1 1 1)
-   (let [(x y w h) (self.constraint:get)]
+   (let [(x y w h) (self.label-constraint:get)]
      (love.graphics.print self.text x y)))
 
 (class view)
