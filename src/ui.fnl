@@ -10,6 +10,13 @@
      (set id-count (+ id-count 1))
      (.. :__generated-id# (tostring idx))))
 
+(local _text-settings
+   { :h-align :left
+     :v-align :center
+     :font (love.graphics.newFont 13) })
+
+(λ text-settings [data] (setmetatable data {:__index _text-settings}))
+
 (class panel)
 (λ panel.new [self constraint color]
    (set self.color color)
@@ -22,14 +29,17 @@
    (love.graphics.pop))
 
 (class label)
-(λ label.new [self constraint text]
-   (set self.constraint constraint)
-   (set self.text text))
+(λ label.new [self constraint text ?settings]
+  (set self.constraint constraint)
+  (set self.settings (or ?settings _text-settings))
+  (set self.text text)
+  (set self.text-batch (love.graphics.newTextBatch self.settings.font)))
 
 (λ label.draw [self]
    (love.graphics.setColor 0 0 0 1)
    (let [(x y w h) (self.constraint:get)]
-     (love.graphics.print self.text x y)))
+     (self.text-batch:setf self.text w self.settings.h-align)
+     (love.graphics.draw self.text-batch x y)))
 
 (class button)
 (λ button.new [self constraint text on-click]
@@ -87,4 +97,5 @@
 {
    : view
    : into
+   : text-settings
 }

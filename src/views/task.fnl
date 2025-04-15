@@ -19,7 +19,7 @@
            (: :margin 20)))
      (setf :label
        (-> (nlay.constraint self.root self.root self.root nil self.layout.button-complete)
-           (: :size 100 100)
+           (: :size 0 100)
            (: :margin [20 20])
            (: :bias 0))))
    (self:panel self.root [1 1 1 1])
