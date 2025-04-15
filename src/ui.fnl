@@ -62,27 +62,23 @@
 
 (class view)
 
-(λ view.new [self constraint ?id]
+(λ view.new [self parent-constraint ?id]
    (set self.elements [])
    (set self.buttons [])
    (set self.id (or ?id (gen-id)))
-   (set self.parent-constraint constraint)
+   (set self.parent-constraint parent-constraint)
    (set self.root (nlay.floating 0 0 0 0)))
 
 (λ view.draw [self]
-  (love.graphics.push)
   (let [(x y w h) (self.parent-constraint:get)]
-    (self.root:size w h)
-    (love.graphics.translate x y)
     (each [_ v (ipairs self.elements)]
-      (v:draw))
-  (love.graphics.pop)))
+      (v:draw))))
 
 (λ view.update [self dt]
+  (self.root:update (self.parent-constraint:get))
   (let [(mx my) (love.mouse.getPosition)]
     (each [_ b (ipairs self.buttons)]
-      (let [(x y) (self.parent-constraint:get)
-            (x y w h) (b.constraint:get x y)]
+      (let [(x y w h) (b.constraint:get)]
         (set b.hovered? (and (>= mx x) (>= my y) (<= mx (+ x w)) (<= my (+ y h))))))))
 
 (λ view.add-element [self element]

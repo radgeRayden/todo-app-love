@@ -7,8 +7,8 @@
 
 (λ setf [t field v] (set (. t field) v))
 
-(λ task-view.new [self task constraint]
-   (self:super constraint)
+(λ task-view.new [self task parent]
+   (self:super parent)
    (doto self
      (setf :layout {})
      (setf :task task))
