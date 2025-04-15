@@ -1,6 +1,8 @@
 (import-macros {: class } :src.macros)
 (local nlay (require :lib.nlay))
 
+(λ setf [t field v] (set (. t field) v))
+
 (λ into [parent]
    (nlay.constraint parent parent parent parent parent))
 
@@ -81,31 +83,18 @@
       (let [(x y w h) (b.constraint:get)]
         (set b.hovered? (and (>= mx x) (>= my y) (<= mx (+ x w)) (<= my (+ y h))))))))
 
-(λ view.add-element [self element]
+(λ view.push [self element]
+   (if (element:is button) (self:add-button element))
    (table.insert self.elements element))
 
 (λ view.add-button [self btn]
    (table.insert self.buttons btn))
 
-(λ view.button [self ...]
-  (let [btn (button ...)]
-    (self:add-element btn)
-    (self:add-button btn)))
-
-(λ view.image [self constraint ?id ])
-
-(λ view.panel [self constraint color ?id]
-   (self:add-element (panel constraint color)))
-
-(λ view.label [self constraint text ?id]
-   (self:add-element (label constraint text)))
-
-(λ view.text-field [self constraint ?id ])
-
-(λ view.text-area [self constraint ?id ])
-
 {
-   : view
-   : into
-   : text-settings
+  : view
+  : into
+  : text-settings
+  : panel
+  : label
+  : button
 }

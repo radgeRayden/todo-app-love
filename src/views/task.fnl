@@ -22,9 +22,10 @@
            (: :size 0 100)
            (: :margin [20 20])
            (: :bias 0))))
-   (self:panel self.root [1 1 1 1])
-   (self:label self.layout.label task.description)
-   (self:button self.layout.button-complete "YEAH" (fn [] (print "YEAH"))))
+   (local push (partial self.push self))
+   (push (ui.panel self.root [1 1 1 1]))
+   (push (ui.label self.layout.label task.description))
+   (push (ui.button self.layout.button-complete "YEAH" (fn [] (print "YEAH")))))
 
 (fn live.cb.load []
   (local root (nlay.constraint nlay nlay nlay nlay nlay))
