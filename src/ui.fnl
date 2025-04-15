@@ -69,11 +69,17 @@
    (set self.buttons [])
    (set self.id (or ?id (gen-id)))
    (set self.parent-constraint parent-constraint)
+   (set self.important? false)
    (set self.root (nlay.floating 0 0 0 0)))
 
 (λ view.draw [self]
-  (let [(x y w h) (self.parent-constraint:get)]
+  (let [(x y w h) (self.parent-constraint:get)
+        important []]
     (each [_ v (ipairs self.elements)]
+      (if v.important?
+          (table.insert important v)
+          (v:draw)))
+    (each [_ v (ipairs important)]
       (v:draw))))
 
 (λ view.update [self dt]
