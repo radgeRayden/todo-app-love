@@ -52,7 +52,9 @@
    (set self.on-click on-click))
 
 (λ button.draw [self]
-   (love.graphics.setColor 0.25 0.25 0.25 1)
+   (if self.hovered?
+      (love.graphics.setColor 0.75 0.75 0.75 1)
+      (love.graphics.setColor 0.25 0.25 0.25 1))
    (love.graphics.rectangle :fill (self.constraint:get))
    (love.graphics.setColor 1 1 1 1)
    (let [(x y w h) (self.label-constraint:get)]
@@ -60,20 +62,28 @@
 
 (class view)
 
-(λ view.new [self ?id]
+(λ view.new [self constraint ?id]
    (set self.elements [])
    (set self.buttons [])
    (set self.id (or ?id (gen-id)))
-   (set self.root (into nlay)))
+   (set self.parent-constraint constraint)
+   (set self.root (nlay.floating 0 0 0 0)))
 
-(λ view.draw [self constraint]
+(λ view.draw [self]
   (love.graphics.push)
-  (let [(x y w h) (constraint:get)]
+  (let [(x y w h) (self.parent-constraint:get)]
     (self.root:size w h)
     (love.graphics.translate x y)
     (each [_ v (ipairs self.elements)]
-      (v:draw)))
-  (love.graphics.pop))
+      (v:draw))
+  (love.graphics.pop)))
+
+(λ view.update [self dt]
+  (let [(mx my) (love.mouse.getPosition)]
+    (each [_ b (ipairs self.buttons)]
+      (let [(x y) (self.parent-constraint:get)
+            (x y w h) (b.constraint:get x y)]
+        (set b.hovered? (and (>= mx x) (>= my y) (<= mx (+ x w)) (<= my (+ y h))))))))
 
 (λ view.add-element [self element]
    (table.insert self.elements element))
