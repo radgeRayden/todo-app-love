@@ -14,16 +14,16 @@
      (setf :task task))
    (doto self.layout
      (setf :button-complete
-       (-> (nlay.constraint self.root self.root nil nil self.root)
+       (-> (nlay.constraint self.constraint self.constraint nil nil self.constraint)
            (: :size 50 30)
            (: :margin 20)))
      (setf :label
-       (-> (nlay.constraint self.root self.root self.root nil self.layout.button-complete)
+       (-> (nlay.constraint self.constraint self.constraint self.constraint nil self.layout.button-complete)
            (: :size 0 100)
            (: :margin [20 20])
            (: :bias 0))))
    (local push (partial self.push self))
-   (push (ui.panel self.root [1 1 1 1]))
+   (push (ui.panel self.constraint [1 1 1 1]))
    (push (ui.label self.layout.label task.description))
    (push (ui.button self.layout.button-complete "YEAH" (fn [] (print "YEAH")))))
 
@@ -41,8 +41,15 @@
   (fn live.cb.update [dt]
     (nlay.update (love.window.getSafeArea))
     (view:update dt))
-  (fn live.cb.resize [w h]
-    ))
+
+  (fn live.cb.mousepressed [x y btn]
+    (view:mousepressed x y btn))
+
+  (fn live.cb.mousereleased [x y btn]
+    (view:mousereleased x y btn))
+
+  (fn live.cb.resize [w h]))
+
 {
   :task task-view
 }

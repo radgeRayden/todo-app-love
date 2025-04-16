@@ -19,10 +19,26 @@
 
 (λ text-settings [data] (setmetatable data {:__index _text-settings}))
 
-(class panel)
+(class element)
+(λ element.new [self constraint ?id]
+   (set self.elements [])
+   (set self.constraint constraint)
+   (set self.id (or ?id (gen-id)))
+   (set self.important? false))
+
+(λ make-forwarding-callback [method]
+   (fn [self ...]
+     (each [_ v (ipairs self.elements)]
+       (: v method ...))))
+
+(local callbacks [:mousepressed :mousereleased :update])
+(each [_ v (ipairs callbacks)]
+  (set (. element v) (make-forwarding-callback v)))
+
+(class panel element)
 (λ panel.new [self constraint color]
-   (set self.color color)
-   (set self.constraint constraint))
+   (self:super constraint)
+   (set self.color color))
 
 (λ panel.draw [self]
    (love.graphics.push :all)
@@ -30,9 +46,9 @@
    (love.graphics.rectangle :fill (self.constraint:get))
    (love.graphics.pop))
 
-(class label)
+(class label element)
 (λ label.new [self constraint text ?settings]
-  (set self.constraint constraint)
+  (self:super constraint)
   (set self.settings (or ?settings _text-settings))
   (set self.text text)
   (set self.text-batch (love.graphics.newTextBatch self.settings.font)))
@@ -43,15 +59,22 @@
      (self.text-batch:setf self.text w self.settings.h-align)
      (love.graphics.draw self.text-batch x y)))
 
-(class button)
+(class button element)
 (λ button.new [self constraint text on-click]
-   (set self.constraint constraint)
+   (self:super constraint)
    (set self.label-constraint 
      (-> (into constraint)
        (: :bias 0.5 0.5)
        (: :size 0.9 0.5 :percent :percent)))
    (set self.text text)
    (set self.on-click on-click))
+
+(λ button.update [self dt]
+  (let [(mx my) (love.mouse.getPosition)
+        (x y w h) (self.constraint:get)]
+          (set self.hovered?
+            (and (>= mx x) (>= my y) (<= mx (+ x w)) (<= my (+ y h)))))
+   (element.update self dt))
 
 (λ button.draw [self]
    (if self.hovered?
@@ -62,15 +85,16 @@
    (let [(x y w h) (self.label-constraint:get)]
      (love.graphics.print self.text x y)))
 
-(class view)
+(λ button.mousereleased [self mx my btn]
+   (let [(x y w h) (self.constraint:get)]
+      (if (and (>= mx x) (>= my y) (<= mx (+ x w)) (<= my (+ y h)))
+          (self:on-click))))
 
+(class view element)
 (λ view.new [self parent-constraint ?id]
-   (set self.elements [])
-   (set self.buttons [])
-   (set self.id (or ?id (gen-id)))
+   (self:super (nlay.floating 0 0 0 0))
    (set self.parent-constraint parent-constraint)
-   (set self.important? false)
-   (set self.root (nlay.floating 0 0 0 0)))
+   (set self.important? false))
 
 (λ view.draw [self]
   (let [(x y w h) (self.parent-constraint:get)
@@ -83,20 +107,11 @@
       (v:draw))))
 
 (λ view.update [self dt]
-  (self.root:update (self.parent-constraint:get))
-  (each [_ v (ipairs self.elements)]
-    (if v.update (v.update dt)))
-  (let [(mx my) (love.mouse.getPosition)]
-    (each [_ b (ipairs self.buttons)]
-      (let [(x y w h) (b.constraint:get)]
-        (set b.hovered? (and (>= mx x) (>= my y) (<= mx (+ x w)) (<= my (+ y h))))))))
+  (self.constraint:update (self.parent-constraint:get))
+  (element.update self dt))
 
 (λ view.push [self element]
-   (if (element:is button) (self:add-button element))
    (table.insert self.elements element))
-
-(λ view.add-button [self btn]
-   (table.insert self.buttons btn))
 
 {
   : view
