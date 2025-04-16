@@ -173,6 +173,7 @@ function m.setup(path, settings)
     end
 
     m.reload_source()
+    print("source reloaded")
     m.call_protected(m.cb.load)
 end
 
