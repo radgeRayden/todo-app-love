@@ -15,7 +15,8 @@
 (local _text-settings
    { :h-align :left
      :v-align :center
-     :font (love.graphics.newFont 13) })
+     :font (love.graphics.newFont 13) 
+     :color [0 0 0 1] })
 
 (λ text-settings [data] (setmetatable data {:__index _text-settings}))
 
@@ -57,7 +58,7 @@
   (set self.text-batch (love.graphics.newTextBatch self.settings.font)))
 
 (λ label.draw [self]
-   (love.graphics.setColor 0 0 0 1)
+   (love.graphics.setColor self.settings.color)
    (let [(x y w h) (self.constraint:get)]
      (self.text-batch:setf self.text w self.settings.h-align)
      (love.graphics.draw self.text-batch x y)))
@@ -69,7 +70,10 @@
      (-> (into constraint)
        (: :bias 0.5 0.5)
        (: :size 0.9 0.5 :percent :percent)))
-   (self:push (label self.label-constraint text))
+   (self:push (label self.label-constraint text
+               (text-settings 
+                 { :color [ 1 1 1 1 ] 
+                   :h-align :center })))
    (set self.text text)
    (set self.on-click on-click))
 
