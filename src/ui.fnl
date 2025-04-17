@@ -26,12 +26,15 @@
    (set self.id (or ?id (gen-id)))
    (set self.important? false))
 
+(λ element.push [self element]
+   (table.insert self.elements element))
+
 (λ make-forwarding-callback [method]
    (fn [self ...]
      (each [_ v (ipairs self.elements)]
        (: v method ...))))
 
-(local callbacks [:mousepressed :mousereleased :update])
+(local callbacks [:draw :mousepressed :mousereleased :update])
 (each [_ v (ipairs callbacks)]
   (set (. element v) (make-forwarding-callback v)))
 
@@ -66,6 +69,7 @@
      (-> (into constraint)
        (: :bias 0.5 0.5)
        (: :size 0.9 0.5 :percent :percent)))
+   (self:push (label self.label-constraint text))
    (set self.text text)
    (set self.on-click on-click))
 
@@ -82,8 +86,7 @@
       (love.graphics.setColor 0.25 0.25 0.25 1))
    (love.graphics.rectangle :fill (self.constraint:get))
    (love.graphics.setColor 1 1 1 1)
-   (let [(x y w h) (self.label-constraint:get)]
-     (love.graphics.print self.text x y)))
+   (element.draw self))
 
 (λ button.mousereleased [self mx my btn]
    (let [(x y w h) (self.constraint:get)]
@@ -109,9 +112,6 @@
 (λ view.update [self dt]
   (self.constraint:update (self.parent-constraint:get))
   (element.update self dt))
-
-(λ view.push [self element]
-   (table.insert self.elements element))
 
 {
   : view
