@@ -83,7 +83,7 @@ function m.reload_source()
     if info then
         modtime = info.modtime
     end
-    print("source reloaded")
+    print("source reloaded", string.format("%.2f", love.timer.getTime()))
 end
 
 local function error_screen()
