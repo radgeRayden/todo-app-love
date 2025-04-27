@@ -83,6 +83,7 @@ function m.reload_source()
     if info then
         modtime = info.modtime
     end
+    print("source reloaded")
 end
 
 local function error_screen()
@@ -173,7 +174,6 @@ function m.setup(path, settings)
     end
 
     m.reload_source()
-    print("source reloaded")
     m.call_protected(m.cb.load)
 end
 
