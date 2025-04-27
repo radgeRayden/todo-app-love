@@ -14,8 +14,8 @@
 
 (local _text-settings
    { :h-align :left
-     :v-align :center
-     :font (love.graphics.newFont 13) 
+     :v-align :top
+     :font (love.graphics.newFont 13)
      :color [0 0 0 1] })
 
 (λ text-settings [data] (setmetatable data {:__index _text-settings}))
@@ -55,13 +55,22 @@
   (self:super constraint)
   (set self.settings (or ?settings _text-settings))
   (set self.text text)
-  (set self.text-batch (love.graphics.newTextBatch self.settings.font)))
+  (set self.text-batch (love.graphics.newTextBatch self.settings.font))
+  (set self.v-center-constraint
+    (nlay.line constraint :vertical :percent 0.5)))
 
 (λ label.draw [self]
    (love.graphics.setColor self.settings.color)
-   (let [(x y w h) (self.constraint:get)]
-     (self.text-batch:setf self.text w self.settings.h-align)
-     (love.graphics.draw self.text-batch x y)))
+   (let [batch self.text-batch
+         v-align self.settings.v-align
+         (x y w h) (self.constraint:get)
+         (_ cy) (self.v-center-constraint:get)]
+     (batch:setf self.text w self.settings.h-align)
+     (love.graphics.draw batch x 
+       (case v-align 
+         :top y
+         :center (- cy (/ (batch:getHeight) 2))
+         :bottom (- (+ y h) (batch:getHeight))))))
 
 (class button element)
 (λ button.new [self constraint text on-click]
@@ -72,8 +81,9 @@
        (: :size 0.9 0.5 :percent :percent)))
    (self:push (label self.label-constraint text
                (text-settings 
-                 { :color [ 1 1 1 1 ] 
-                   :h-align :center })))
+                 { :color [ 1 1 1 1 ]
+                   :h-align :center
+                   :v-align :center })))
    (set self.text text)
    (set self.on-click on-click))
 
@@ -118,6 +128,7 @@
   (element.update self dt))
 
 {
+  : element
   : view
   : into
   : text-settings
