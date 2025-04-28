@@ -25,7 +25,6 @@
          cy (+ y (/ h 2))
          start-angle (/ math.pi -2)
          end-angle (+ start-angle (* math.pi 2 (- 1 self.progress)))]
-    (love.graphics.print (string.format "\n%.2f %.2f" start-angle end-angle))
     (love.graphics.arc :line :open cx cy r start-angle end-angle 360)
     (if (< self.progress 1)
       (do
@@ -50,8 +49,6 @@
           (+ cy (* r (math.sin end-angle)))
           (/ (- self.line-width 1.5) 2)
           15))))
-  (love.graphics.setColor 0 0 0 1)
-  (love.graphics.print self.progress)
   (love.graphics.pop))
 
 (class pomodoro ui.view)
