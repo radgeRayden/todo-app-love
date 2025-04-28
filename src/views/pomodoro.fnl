@@ -83,7 +83,7 @@
 (λ pomodoro.update [self dt]
      (let [current-time (love.timer.getTime)
            time-elapsed (- current-time self.start-time)
-           time-left (- self.time time-elapsed)
+           time-left (math.max 0 (- self.time time-elapsed))
            minutes (math.floor (/ time-left 60))
            seconds (% time-left 60)] 
        (set self.ring.progress (math.min 1 (/ time-elapsed self.time)))
